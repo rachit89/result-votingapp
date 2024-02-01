@@ -9,7 +9,7 @@ pipeline {
             spec:
                 restartPolicy: Never
                 volumes:
-                - name: kaniko-docker-secret
+                - name: kaniko-secret
                   secret:
                     secretName: kaniko-secret
                 containers:
@@ -19,7 +19,7 @@ pipeline {
                   - /busybox/cat
                   tty: true
                   volumeMounts:
-                  - name: kaniko-docker-secret
+                  - name: kaniko-secret
                     mountPath: /kaniko/.docker
             """
         }
@@ -28,7 +28,6 @@ pipeline {
     environment {
         DOCKER_HUB_USER = 'mona1712'
         DOCKER_HUB_PASS = 'Chawla1712?'
-        //last_started_build_stage = ""
         github_clone_url = "https://github.com/Monachawla1712/result-votingapp.git"
         git_branch = "main"
         helmchart_repo_url = "https://github.com/Monachawla1712/Votingapp-ArgoCD.git"
@@ -52,15 +51,13 @@ pipeline {
             }
         }
 
-
         stage("Build and Push docker image to docker hub") {
             steps {
-                echo "Building the code in the kaniko container"
+                echo "Building the code"
                 container('kaniko') {
                     // Use Kaniko to build the Docker image
-                    sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_USER}/vote-app-result:${BUILD_NUMBER}-${BUILD_DATE}"
-                    echo"result image successfully build and pushed"
-
+                    sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_USER}/vote-app-result:${BUILD_NUMBER}"
+                    echo"vote image successfully build and pushed"
                 }
             }
         }
@@ -88,7 +85,7 @@ pipeline {
                     """
                 }
             }
-           steps {
+            steps {
                 script {
                     withCredentials([gitUsernamePassword(credentialsId: "${credentials_ID}", gitToolName: 'Default')]) {
                         sh '''
@@ -111,5 +108,4 @@ pipeline {
             }
         }
     }
-}
 }
