@@ -4,9 +4,18 @@ var express = require('express'),
     cookieParser = require('cookie-parser'),
     app = express(),
     server = require('http').Server(app),
-    io = require('socket.io')(server);
+    io = require('socket.io')(server),
+    path = require('path'),
+    dotenv = require('dotenv'); // Added dotenv
+
+dotenv.config(); // Load environment variables from .env file
 
 var port = process.env.PORT || 4000;
+var dbHost = process.env.DB_HOST || 'db';
+var dbName = process.env.DB_NAME || 'postgres';
+var dbUser = process.env.DB_USER || 'postgres';
+var dbPassword = process.env.DB_PASSWORD || 'postgres';
+var dbConnectionString = process.env.DATABASE_URL || 'postgres://' + dbUser + ':' + dbPassword + '@' + dbHost + '/' + dbName || 'postgres://postgres:postgres@db/postgres'; // Use DATABASE_URL from .env or default value
 
 io.on('connection', function (socket) {
 
@@ -18,7 +27,7 @@ io.on('connection', function (socket) {
 });
 
 var pool = new Pool({
-  connectionString: 'postgres://postgres:postgres@db/postgres'
+  connectionString: dbConnectionString
 });
 
 async.retry(
@@ -75,3 +84,4 @@ server.listen(port, function () {
   var port = server.address().port;
   console.log('App running on port ' + port);
 });
+
